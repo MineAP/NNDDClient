@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="NNDDClientVideoPlayView" actionBarVisible="true">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import org.mineap.nndd.client.IpAddressManager;
+			
+			protected function videoplayer1_creationCompleteHandler(event:FlexEvent):void
+			{
+				var videoId:String = data.videoId;
+				var name:String = data.name;
+				title = name;
+				videoPlayer.source = "http://" + IpAddressManager.instance.ipAddress + ":8080/NNDDServer/videostream/" + videoId;
+				
+			}
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				pop();
+			}
+			
+			protected function button1_touchEndHandler(event:TouchEvent):void
+			{
+				pop();
+			}
+			
+			protected function pop():void
+			{
+				if (videoPlayer != null)
+				{
+					videoPlayer.stop();
+				}
+				
+				navigator.popView();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 非ビジュアルエレメント (サービス、値オブジェクトなど) をここに配置 -->
+	</fx:Declarations>
+	<s:navigationContent>
+		<s:Button label="戻る" click="button1_clickHandler(event)" touchEnd="button1_touchEndHandler(event)"/>
+	</s:navigationContent>
+	<s:VideoPlayer id="videoPlayer" left="10" right="10" top="10" bottom="10" creationComplete="videoplayer1_creationCompleteHandler(event)" volume="0.5"></s:VideoPlayer>
+</s:View>

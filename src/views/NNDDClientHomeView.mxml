@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="HomeView" destructionPolicy="never">
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayList;
+			import mx.collections.IList;
+			import mx.events.FlexEvent;
+			
+			import org.mineap.nndd.client.IpAddressManager;
+			import org.mineap.nndd.client.NNDDVideo;
+			
+			import spark.events.TextOperationEvent;
+			
+			protected var itemList:ArrayList = new ArrayList();
+			
+			protected function button1_clickHandler(event:MouseEvent):void
+			{
+				renew();
+			}
+			
+			protected function list1_clickHandler(event:MouseEvent):void
+			{
+				var item:Object = (event.currentTarget as List).selectedItem;
+				playVideo(item);
+			}
+			
+			protected function list1_touchEndHandler(event:TouchEvent):void
+			{
+				var item:Object = (event.currentTarget as List).selectedItem;
+				playVideo(item);
+			}
+			
+			protected function playVideo(item:Object):void
+			{
+				
+				if (item != null)
+				{
+					navigator.pushView(NNDDClientVideoPlayView, item);
+				}
+			}
+			
+			protected function renew():void
+			{
+				var loader:URLLoader = new URLLoader();
+				loader.addEventListener(IOErrorEvent.IO_ERROR, function(event:IOErrorEvent):void
+				{
+					logArea.text += event.toString() + "\n";
+					trace(event);
+				});
+				loader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, function(event:SecurityErrorEvent):void
+				{
+					logArea.text += event.toString() + "\n";
+					trace(event);
+				});
+				loader.addEventListener(Event.COMPLETE, function(event:Event):void
+				{
+					logArea.text += event.toString() + "\n";
+					trace(event);
+					
+					var xml:XML = new XML(event.currentTarget.data);
+					trace(xml);
+					
+					var items:XMLList = xml.descendants("item");
+					
+					for each(var item:XML in items)
+					{
+						var nnddVideo:NNDDVideo = new NNDDVideo();
+						nnddVideo.videoId = item.guid;
+						nnddVideo.name = item.title;
+						
+						itemList.addItem(nnddVideo);
+					}
+					
+				});
+				
+				IpAddressManager.instance.ipAddress = ipAddress.text;
+				var url:String = "http://" + IpAddressManager.instance.ipAddress + ":8080/NNDDServer/api/getvideolist";
+				
+				logArea.text = url + "\nloading...\n";
+				loader.load(new URLRequest(url));
+				
+			}
+			
+			
+			protected function button1_touchEndHandler(event:TouchEvent):void
+			{
+				renew();
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 非ビジュアルエレメント (サービス、値オブジェクトなど) をここに配置 -->
+	</fx:Declarations>
+	<s:TextInput left="10" right="71" top="10" height="43" id="ipAddress" text="localhost"/>
+	<s:Button right="10" top="10" label="更新" click="button1_clickHandler(event)" touchEnd="button1_touchEndHandler(event)"/>
+	<s:Scroller left="10" right="10" top="61" bottom="10">
+		<s:VGroup width="100%" height="100%">
+			<s:List width="100%" height="100%" dataProvider="{itemList}" click="list1_clickHandler(event)" touchEnd="list1_touchEndHandler(event)">
+				<s:itemRenderer>
+					<fx:Component>
+						<s:ItemRenderer>
+							<s:Label text="{data.name}" top="5" left="5" right="5"/>
+						</s:ItemRenderer>
+					</fx:Component>
+				</s:itemRenderer>
+			</s:List>
+			<s:TextArea id="logArea" width="100%" height="25%" editable="false"/>
+		</s:VGroup>
+	</s:Scroller>
+	
+	
+</s:View>
